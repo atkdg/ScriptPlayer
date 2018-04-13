@@ -1468,7 +1468,7 @@ namespace ScriptPlayer.ViewModels
                             PositionToTransformed = TransformPosition(transistion.To, 0, 99, DateTime.Now.TimeOfDay.TotalSeconds),
                             SpeedMultiplier = Settings.SpeedMultiplier,
                             SpeedMin = Settings.MinSpeed / 99.0,
-                            SpeedMax = BackoffSpeedCap() * (Settings.MaxSpeed / 99.0),
+                            SpeedMax = Settings.MaxSpeed / 99.0,
                         };
 
                         info.SpeedOriginal = SpeedPredictor.PredictSpeed2(info.PositionFromOriginal, info.PositionToOriginal,
@@ -2051,7 +2051,7 @@ namespace ScriptPlayer.ViewModels
                 PositionToOriginal = e.NextAction.Position,
                 SpeedMultiplier = Settings.SpeedMultiplier,
                 SpeedMin = Settings.MinSpeed / 99.0,
-                SpeedMax = BackoffSpeedCap() * (Settings.MaxSpeed / 99.0)
+                SpeedMax = Settings.MaxSpeed / 99.0
             };
 
             IntermediateCommandInformation intermediateInfo = new IntermediateCommandInformation
@@ -2129,7 +2129,7 @@ namespace ScriptPlayer.ViewModels
                         PositionToOriginal = eventArgs.NextAction.Position,
                         SpeedMultiplier = Settings.SpeedMultiplier,
                         SpeedMin = Settings.MinSpeed / 99.0,
-                        SpeedMax = BackoffSpeedCap() * (Settings.MaxSpeed / 99.0),
+                        SpeedMax = Settings.MaxSpeed / 99.0,
                     };
 
                     SetDevices(info);
