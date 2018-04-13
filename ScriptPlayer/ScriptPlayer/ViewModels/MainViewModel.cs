@@ -2242,11 +2242,11 @@ namespace ScriptPlayer.ViewModels
 
         private byte ClampSpeed(double speed)
         {
-            double backoffPct = BackoffSpeedCap() * 100;
-            if (backoffPct < Settings.MinSpeed) // never run under MinSpeed
+            byte cappedSpeed = Math.Min(Settings.MaxSpeed, Math.Min(BackoffSpeedCap(), (byte)speed));
+            if (cappedSpeed == 0)  // halt
                 return 0;
             else
-                return (byte)Math.Min(Math.Min(backoffPct, Settings.MaxSpeed), Math.Max(Settings.MinSpeed, speed));
+                return Math.Max(Settings.MinSpeed, cappedSpeed);
         }
 
         private byte TransformPosition(byte pos, byte inMin, byte inMax, double timestamp)
@@ -2691,20 +2691,20 @@ namespace ScriptPlayer.ViewModels
             _currentBackoffStart = DateTime.Now;
         }
 
-        /// <summary>Range 0.0-1.0</summary>
-        private double BackoffSpeedCap()
+        /// <summary>Range 0-100</summary>
+        private byte BackoffSpeedCap()
         {
             if (_currentBackoffStart.HasValue)
             {
                 double secondsSinceRampStart = (DateTime.Now - _currentBackoffStart.Value - Settings.BackoffHalt).TotalSeconds;
                 if (secondsSinceRampStart < 0) // halt phase
-                    return 0.0;
+                    return 0;
                 else if (secondsSinceRampStart < Settings.BackoffRamp.TotalSeconds) // linear ramp phase
-                    return secondsSinceRampStart / Settings.BackoffRamp.TotalSeconds;
+                    return (byte)(secondsSinceRampStart * 100 / Settings.BackoffRamp.TotalSeconds);
                 else // ramp phase over, reset
                     _currentBackoffStart = null;
             }
-            return 1.0;
+            return 100;
         }
 
         public void ConnectLaunchDirectly()
