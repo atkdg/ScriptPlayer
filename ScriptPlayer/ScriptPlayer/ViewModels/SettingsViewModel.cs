@@ -34,6 +34,9 @@ namespace ScriptPlayer.ViewModels
         private byte _minSpeed = 20;
         private byte _maxSpeed = 95;
         private double _speedMultiplier = 1;
+
+        private TimeSpan _backoffHalt = TimeSpan.FromSeconds(10);
+        private TimeSpan _backoffRamp = TimeSpan.FromSeconds(30);
         
         private bool _showHeatMap;
         private PositionFilterMode _filterMode = PositionFilterMode.FullRange;
@@ -575,6 +578,44 @@ namespace ScriptPlayer.ViewModels
                 _speedMultiplier = value;
                 OnPropertyChanged();
             }
+        }
+
+        [XmlIgnore]
+        public TimeSpan BackoffHalt
+        {
+            get => _backoffHalt;
+            set
+            {
+                if (value.Equals(_backoffHalt)) return;
+                _backoffHalt = value;
+                OnPropertyChanged();
+            }
+        }
+
+        [XmlElement("BackoffHalt")]
+        public long BackoffHaltWrapper
+        {
+            get => BackoffHalt.Ticks;
+            set => BackoffHalt = TimeSpan.FromTicks(value);
+        }
+
+        [XmlIgnore]
+        public TimeSpan BackoffRamp
+        {
+            get => _backoffRamp;
+            set
+            {
+                if (value.Equals(_backoffRamp)) return;
+                _backoffRamp = value;
+                OnPropertyChanged();
+            }
+        }
+
+        [XmlElement("BackoffRamp")]
+        public long BackoffRampWrapper
+        {
+            get => BackoffRamp.Ticks;
+            set => BackoffRamp = TimeSpan.FromTicks(value);
         }
 
         [XmlElement("ScriptDelay")]

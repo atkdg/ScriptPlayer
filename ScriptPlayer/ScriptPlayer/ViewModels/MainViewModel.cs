@@ -131,8 +131,6 @@ namespace ScriptPlayer.ViewModels
         private string _loadedScript;
         private string _loadedVideo;
 
-        private const int _backoffHaltSec = 10;
-        private const int _backoffRampSec = 30;
         private Nullable<DateTime> _currentBackoffStart = null;
 
         private bool IsSeeking
@@ -2698,11 +2696,11 @@ namespace ScriptPlayer.ViewModels
         {
             if (_currentBackoffStart.HasValue)
             {
-                double secondsSinceStart = Math.Max(0, (DateTime.Now - _currentBackoffStart.Value).TotalSeconds) - _backoffHaltSec;
-                if (secondsSinceStart < 0) // halt phase
+                double secondsSinceRampStart = (DateTime.Now - _currentBackoffStart.Value - Settings.BackoffHalt).TotalSeconds;
+                if (secondsSinceRampStart < 0) // halt phase
                     return 0.0;
-                else if (secondsSinceStart < _backoffRampSec) // linear ramp phase
-                    return secondsSinceStart / _backoffRampSec;
+                else if (secondsSinceRampStart < Settings.BackoffRamp.TotalSeconds) // linear ramp phase
+                    return secondsSinceRampStart / Settings.BackoffRamp.TotalSeconds;
                 else // ramp phase over, reset
                     _currentBackoffStart = null;
             }

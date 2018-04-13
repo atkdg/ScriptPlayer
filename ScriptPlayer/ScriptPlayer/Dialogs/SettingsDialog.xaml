@@ -17,6 +17,7 @@
     <Window.Resources>
         <converters:DistinctValueToBooleanConverter x:Key="BooleanConverter"/>
         <converters:TimeSpanToMillisecondsConverter x:Key="MillisecondsConverter"/>
+        <converters:TimeSpanToSecondsConverter x:Key="SecondsConverter"/>
         <converters1:BooleanInverter x:Key="Inverter"/>
         <Style TargetType="TextBlock" x:Key="SettingName">
             <Setter Property="Margin" Value="0"/>
@@ -358,6 +359,18 @@
                                 <TextBlock Style="{StaticResource SettingName}" Text="Min Command Delay"/>
                                 <TextBlock Style="{StaticResource SettingValue}" Text="{Binding Path=Settings.CommandDelay, Converter={StaticResource MillisecondsConverter}, StringFormat={}{0:f0} ms}"/>
                                 <Slider LargeChange="1" Margin="0,4" Minimum="10" Maximum="300"  Value="{Binding Path=Settings.CommandDelay, Converter={StaticResource MillisecondsConverter}}"  SmallChange="1"  IsSnapToTickEnabled="True" TickFrequency="1"/>
+                            </DockPanel>
+
+                            <DockPanel Margin="4" ToolTip="Duration of halt after backoff is activated">
+                                <TextBlock Style="{StaticResource SettingName}" Text="Backoff Halt Time"/>
+                                <TextBlock Style="{StaticResource SettingValue}" Text="{Binding Path=Settings.BackoffHalt, Converter={StaticResource SecondsConverter}, StringFormat={}{0:f0} s}"/>
+                                <Slider Value="{Binding Path=Settings.BackoffHalt, Converter={StaticResource SecondsConverter}}" Margin="0,4" Minimum="0" Maximum="120" SmallChange="1" IsSnapToTickEnabled="True" TickFrequency="1"/>
+                            </DockPanel>
+
+                            <DockPanel Margin="4" ToolTip="Duration of linear max speed increase after halt">
+                                <TextBlock Style="{StaticResource SettingName}" Text="Backoff Ramp Time"/>
+                                <TextBlock Style="{StaticResource SettingValue}" Text="{Binding Path=Settings.BackoffRamp, Converter={StaticResource SecondsConverter}, StringFormat={}{0:f0} s}"/>
+                                <Slider Value="{Binding Path=Settings.BackoffRamp, Converter={StaticResource SecondsConverter}}" Margin="0,4" Minimum="0" Maximum="120" SmallChange="1" LargeChange="5" IsSnapToTickEnabled="True" TickFrequency="1"/>
                             </DockPanel>
                         </StackPanel>
                     </Grid>
