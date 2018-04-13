@@ -4,6 +4,7 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
+using System.IO.Ports;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
@@ -132,6 +133,8 @@ namespace ScriptPlayer.ViewModels
         private string _loadedVideo;
 
         private Nullable<DateTime> _currentBackoffStart = null;
+        private SerialPort _serialPort;
+        private string _serialBuffer;
 
         private bool IsSeeking
         {
@@ -204,6 +207,8 @@ namespace ScriptPlayer.ViewModels
             }
 
             InitializeScriptHandler();
+
+            InitialiseSerial();
 
             LoadSettings();
         }
@@ -2705,6 +2710,41 @@ namespace ScriptPlayer.ViewModels
                     _currentBackoffStart = null;
             }
             return 100;
+        }
+
+        private void InitialiseSerial()
+        {
+            _serialPort = new SerialPort("COM1", 9600, Parity.None, 8, StopBits.One);
+            _serialBuffer = "";
+            _serialPort.DataReceived += RecvSerial;
+            _serialPort.Open();
+        }
+
+        private void RecvSerial(object sender, SerialDataReceivedEventArgs e)
+        {
+            const int msgLength = 5;
+            _serialBuffer += _serialPort.ReadExisting();
+            if (_serialBuffer.Length < msgLength) return;
+
+            // ignore last (msgLength - 1) bytes to get the last complete message
+            int lastMsgIdx = _serialBuffer.Substring(0, _serialBuffer.Length - msgLength + 1).LastIndexOf('P');
+            if (lastMsgIdx == -1)
+            {
+                if (_serialBuffer.Length > msgLength * 2) // trim garbage from start of buffer
+                    _serialBuffer = _serialBuffer.Substring(_serialBuffer.Length - msgLength * 2);
+                return;
+            }
+            // must be complete message by this point, drop P
+            string msg = _serialBuffer.Substring(lastMsgIdx + 1, msgLength - 1);
+            if (int.TryParse(msg, System.Globalization.NumberStyles.None, System.Globalization.CultureInfo.InvariantCulture, out int pressure))
+                Debug.WriteLine("Got serial pressure: " + pressure);
+            else
+                Debug.WriteLine("Got odd message on serial port: " + msg);
+
+            if (_serialBuffer.Length > lastMsgIdx + msgLength)
+                _serialBuffer = _serialBuffer.Substring(lastMsgIdx + msgLength);
+            else
+                _serialBuffer = "";
         }
 
         public void ConnectLaunchDirectly()
