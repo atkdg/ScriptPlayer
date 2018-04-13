@@ -39,6 +39,8 @@ namespace ScriptPlayer.Shared
             {
                 if (!await Initialize())
                     return false;
+                if (speed == 0)
+                    return false;
 
                 GattWriteOption option = SendCommandsWithResponse
                     ? GattWriteOption.WriteWithResponse

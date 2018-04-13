@@ -131,6 +131,10 @@ namespace ScriptPlayer.ViewModels
         private string _loadedScript;
         private string _loadedVideo;
 
+        private const int _backoffHaltSec = 10;
+        private const int _backoffRampSec = 30;
+        private Nullable<DateTime> _currentBackoffStart = null;
+
         private bool IsSeeking
         {
             get
@@ -1466,7 +1470,7 @@ namespace ScriptPlayer.ViewModels
                             PositionToTransformed = TransformPosition(transistion.To, 0, 99, DateTime.Now.TimeOfDay.TotalSeconds),
                             SpeedMultiplier = Settings.SpeedMultiplier,
                             SpeedMin = Settings.MinSpeed / 99.0,
-                            SpeedMax = Settings.MaxSpeed / 99.0,
+                            SpeedMax = BackoffSpeedCap() * (Settings.MaxSpeed / 99.0),
                         };
 
                         info.SpeedOriginal = SpeedPredictor.PredictSpeed2(info.PositionFromOriginal, info.PositionToOriginal,
@@ -2049,7 +2053,7 @@ namespace ScriptPlayer.ViewModels
                 PositionToOriginal = e.NextAction.Position,
                 SpeedMultiplier = Settings.SpeedMultiplier,
                 SpeedMin = Settings.MinSpeed / 99.0,
-                SpeedMax = Settings.MaxSpeed / 99.0
+                SpeedMax = BackoffSpeedCap() * (Settings.MaxSpeed / 99.0)
             };
 
             IntermediateCommandInformation intermediateInfo = new IntermediateCommandInformation
@@ -2127,7 +2131,7 @@ namespace ScriptPlayer.ViewModels
                         PositionToOriginal = eventArgs.NextAction.Position,
                         SpeedMultiplier = Settings.SpeedMultiplier,
                         SpeedMin = Settings.MinSpeed / 99.0,
-                        SpeedMax = Settings.MaxSpeed / 99.0,
+                        SpeedMax = BackoffSpeedCap() * (Settings.MaxSpeed / 99.0),
                     };
 
                     SetDevices(info);
@@ -2240,7 +2244,11 @@ namespace ScriptPlayer.ViewModels
 
         private byte ClampSpeed(double speed)
         {
-            return (byte)Math.Min(Settings.MaxSpeed, Math.Max(Settings.MinSpeed, speed));
+            double backoffPct = BackoffSpeedCap() * 100;
+            if (backoffPct < Settings.MinSpeed) // never run under MinSpeed
+                return 0;
+            else
+                return (byte)Math.Min(Math.Min(backoffPct, Settings.MaxSpeed), Math.Max(Settings.MinSpeed, speed));
         }
 
         private byte TransformPosition(byte pos, byte inMin, byte inMax, double timestamp)
@@ -2678,6 +2686,27 @@ namespace ScriptPlayer.ViewModels
             UpdateHeatMap();
 
             return true;
+        }
+
+        public void StartBackoff()
+        {
+            _currentBackoffStart = DateTime.Now;
+        }
+
+        /// <summary>Range 0.0-1.0</summary>
+        private double BackoffSpeedCap()
+        {
+            if (_currentBackoffStart.HasValue)
+            {
+                double secondsSinceStart = Math.Max(0, (DateTime.Now - _currentBackoffStart.Value).TotalSeconds) - _backoffHaltSec;
+                if (secondsSinceStart < 0) // halt phase
+                    return 0.0;
+                else if (secondsSinceStart < _backoffRampSec) // linear ramp phase
+                    return secondsSinceStart / _backoffRampSec;
+                else // ramp phase over, reset
+                    _currentBackoffStart = null;
+            }
+            return 1.0;
         }
 
         public void ConnectLaunchDirectly()

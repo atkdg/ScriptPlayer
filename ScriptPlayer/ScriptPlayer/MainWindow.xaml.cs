@@ -402,7 +402,7 @@ namespace ScriptPlayer
                     }
                 case Key.NumPad0:
                     {
-
+                        ViewModel.StartBackoff();
                         break;
                     }
                 case Key.NumPad1:
