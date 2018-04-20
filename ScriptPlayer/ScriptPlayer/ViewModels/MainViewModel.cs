@@ -135,6 +135,9 @@ namespace ScriptPlayer.ViewModels
         private Nullable<DateTime> _currentBackoffStart = null;
         private SerialPort _serialPort;
         private string _serialBuffer;
+        private int[] _pressures = new int[100];
+        private int _pressuresIdx = 0;
+        private int _pressuresTotal = 0;
 
         private bool IsSeeking
         {
@@ -208,9 +211,9 @@ namespace ScriptPlayer.ViewModels
 
             InitializeScriptHandler();
 
-            InitialiseSerial();
-
             LoadSettings();
+
+            InitialiseSerial();
         }
 
         public string ScriptPlayerVersion
@@ -2714,10 +2717,17 @@ namespace ScriptPlayer.ViewModels
 
         private void InitialiseSerial()
         {
-            _serialPort = new SerialPort("COM1", 9600, Parity.None, 8, StopBits.One);
+            _serialPort = new SerialPort("COM3", 19200, Parity.None, 8, StopBits.One);
             _serialBuffer = "";
             _serialPort.DataReceived += RecvSerial;
-            _serialPort.Open();
+            try
+            {
+                _serialPort.Open();
+            }
+            catch (IOException e)
+            {
+                Debug.WriteLine("Couldn't open serial: " + e);
+            }
         }
 
         private void RecvSerial(object sender, SerialDataReceivedEventArgs e)
@@ -2737,7 +2747,17 @@ namespace ScriptPlayer.ViewModels
             // must be complete message by this point, drop P
             string msg = _serialBuffer.Substring(lastMsgIdx + 1, msgLength - 1);
             if (int.TryParse(msg, System.Globalization.NumberStyles.None, System.Globalization.CultureInfo.InvariantCulture, out int pressure))
-                Debug.WriteLine("Got serial pressure: " + pressure);
+            {
+                _pressuresTotal += pressure - _pressures[_pressuresIdx];
+                _pressures[_pressuresIdx] = pressure;
+                _pressuresIdx = (_pressuresIdx + 1) % _pressures.Length;
+                int termAverage = _pressuresTotal / _pressures.Length;
+                bool over = pressure - termAverage > Settings.PressureThreshold;
+                if (over)
+                    StartBackoff();
+                if (Settings.ShowPressure)
+                    OnRequestOverlay((over ? "[!] " : "") + "Pressure: " + pressure + " / Avg: " + termAverage, TimeSpan.FromSeconds(1), "Pressure");
+            }
             else
                 Debug.WriteLine("Got odd message on serial port: " + msg);
 

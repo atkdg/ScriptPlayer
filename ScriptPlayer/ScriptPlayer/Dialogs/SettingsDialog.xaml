@@ -121,6 +121,7 @@
                             <CheckBox Margin="4" IsChecked="{Binding Settings.ShowHeatMap}" Content="Show Heat Map"/>
                             <CheckBox Margin="4" IsChecked="{Binding Settings.ShowScriptPositions}" Content="Show Script Positions"/>
                             <CheckBox Margin="4" IsChecked="{Binding Settings.LogMarkers}" Content="Log Markers"/>
+                            <CheckBox Margin="4" IsChecked="{Binding Settings.ShowPressure}" Content="Show Pressure"/>
                         </StackPanel>
                     </Grid>
                     <Grid controls:PageSelector.ContentIdentifier="General">
@@ -371,6 +372,12 @@
                                 <TextBlock Style="{StaticResource SettingName}" Text="Backoff Ramp Time"/>
                                 <TextBlock Style="{StaticResource SettingValue}" Text="{Binding Path=Settings.BackoffRamp, Converter={StaticResource SecondsConverter}, StringFormat={}{0:f0} s}"/>
                                 <Slider Value="{Binding Path=Settings.BackoffRamp, Converter={StaticResource SecondsConverter}}" Margin="0,4" Minimum="0" Maximum="120" SmallChange="1" LargeChange="5" IsSnapToTickEnabled="True" TickFrequency="1"/>
+                            </DockPanel>
+
+                            <DockPanel Margin="4" ToolTip="Pressure threshold that triggers backoff">
+                                <TextBlock Style="{StaticResource SettingName}" Text="Pressure Threshold"/>
+                                <TextBlock Style="{StaticResource SettingValue}" Text="{Binding Path=Settings.PressureThreshold}"/>
+                                <Slider Value="{Binding Path=Settings.PressureThreshold}" Margin="0,4" Minimum="0" Maximum="1024" SmallChange="1" IsSnapToTickEnabled="True" TickFrequency="1"/>
                             </DockPanel>
                         </StackPanel>
                     </Grid>

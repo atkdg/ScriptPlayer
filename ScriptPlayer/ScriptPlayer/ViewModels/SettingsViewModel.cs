@@ -37,6 +37,8 @@ namespace ScriptPlayer.ViewModels
 
         private TimeSpan _backoffHalt = TimeSpan.FromSeconds(10);
         private TimeSpan _backoffRamp = TimeSpan.FromSeconds(30);
+        private int _pressureThreshold = 40;
+        private bool _showPressure = false;
         
         private bool _showHeatMap;
         private PositionFilterMode _filterMode = PositionFilterMode.FullRange;
@@ -616,6 +618,28 @@ namespace ScriptPlayer.ViewModels
         {
             get => BackoffRamp.Ticks;
             set => BackoffRamp = TimeSpan.FromTicks(value);
+        }
+
+        public int PressureThreshold
+        {
+            get => _pressureThreshold;
+            set
+            {
+                if (value == _pressureThreshold) return;
+                _pressureThreshold = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public bool ShowPressure
+        {
+            get => _showPressure;
+            set
+            {
+                if (value == _showPressure) return;
+                _showPressure = value;
+                OnPropertyChanged();
+            }
         }
 
         [XmlElement("ScriptDelay")]
