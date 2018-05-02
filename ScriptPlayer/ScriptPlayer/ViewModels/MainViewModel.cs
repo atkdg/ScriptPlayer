@@ -2748,10 +2748,11 @@ namespace ScriptPlayer.ViewModels
             string msg = _serialBuffer.Substring(lastMsgIdx + 1, msgLength - 1);
             if (int.TryParse(msg, System.Globalization.NumberStyles.None, System.Globalization.CultureInfo.InvariantCulture, out int pressure))
             {
+                int measureCount = _pressures[_pressuresIdx] == 0 ? _pressuresIdx + 1 : _pressures.Length;
                 _pressuresTotal += pressure - _pressures[_pressuresIdx];
                 _pressures[_pressuresIdx] = pressure;
                 _pressuresIdx = (_pressuresIdx + 1) % _pressures.Length;
-                int termAverage = _pressuresTotal / _pressures.Length;
+                int termAverage = _pressuresTotal / measureCount;
                 bool over = pressure - termAverage > Settings.PressureThreshold;
                 if (over)
                     StartBackoff();
